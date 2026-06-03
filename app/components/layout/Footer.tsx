@@ -25,6 +25,7 @@ import {
 import type { Page } from '@/app/lib/types';
 import { tiptapToText } from '@/app/lib/seo';
 import { cn, getImageSrc } from '@/app/lib/utils';
+import { FooterNewsletter } from '@/app/components/layout/FooterNewsletter';
 
 type FooterColumn = {
   title: string;
@@ -248,7 +249,7 @@ export function Footer() {
 
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-12">
           {hasBrandBlock ? (
-            <div className="lg:col-span-5 xl:col-span-4">
+            <div className="lg:col-span-4">
               <Link href="/" className="mb-4 inline-flex items-center gap-3">
                 {logoSrc ? (
                   <img
@@ -309,7 +310,7 @@ export function Footer() {
           <div
             className={cn(
               'grid grid-cols-2 gap-8 sm:grid-cols-3',
-              hasBrandBlock ? 'lg:col-span-7 xl:col-span-8' : 'lg:col-span-12'
+              hasBrandBlock ? 'lg:col-span-5' : 'lg:col-span-9'
             )}
           >
             <FooterLinkColumn column={pagesColumn} colors={colors} fonts={fonts} layout={layout} />
@@ -356,6 +357,10 @@ export function Footer() {
                 </ul>
               </div>
             ) : null}
+          </div>
+
+          <div className="flex lg:col-span-3 lg:justify-end xl:col-span-3">
+            <FooterNewsletter className="w-full max-w-sm lg:max-w-[17.5rem]" />
           </div>
         </div>
 

@@ -48,12 +48,31 @@ export function GallerySection({ gallerySection, className }: GallerySectionProp
     );
   }, [gallerySection?.images]);
 
-  // Distribute items into 3 columns for the parallax effect
+  /** Assign each image to the shortest column so the right side stays filled. */
   const columns = useMemo(() => {
+    if (items.length === 0) return [] as GalleryItem[][];
+    if (items.length === 1) return [items];
+    if (items.length === 2) return [items.slice(0, 1), items.slice(1)];
+
     const cols: GalleryItem[][] = [[], [], []];
-    items.forEach((item, i) => cols[i % 3].push(item));
+    const heights = [0, 0, 0];
+
+    const aspectWeight = (aspect: GalleryItem['aspect']) => {
+      if (aspect === 'portrait') return 1.35;
+      if (aspect === 'square') return 1;
+      return 0.72;
+    };
+
+    for (const item of items) {
+      const target = heights.indexOf(Math.min(...heights));
+      cols[target].push(item);
+      heights[target] += aspectWeight(item.aspect);
+    }
+
     return cols;
   }, [items]);
+
+  const columnRefs = [colLeftRef, colCenterRef, colRightRef];
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -61,26 +80,24 @@ export function GallerySection({ gallerySection, className }: GallerySectionProp
       const mm = gsap.matchMedia();
       
       mm.add("(min-width: 768px)", () => {
-        gsap.to(colLeftRef.current, {
-          y: -150,
-          ease: "none",
-          scrollTrigger: {
-            trigger: containerRef.current,
-            start: "top bottom",
-            end: "bottom top",
-            scrub: true
-          }
-        });
+        const parallax = [
+          { el: colLeftRef.current, y: -120 },
+          { el: colCenterRef.current, y: -50 },
+          { el: colRightRef.current, y: -160 },
+        ];
 
-        gsap.to(colRightRef.current, {
-          y: -250,
-          ease: "none",
-          scrollTrigger: {
-            trigger: containerRef.current,
-            start: "top bottom",
-            end: "bottom top",
-            scrub: true
-          }
+        parallax.forEach(({ el, y }) => {
+          if (!el) return;
+          gsap.to(el, {
+            y,
+            ease: 'none',
+            scrollTrigger: {
+              trigger: containerRef.current,
+              start: 'top bottom',
+              end: 'bottom top',
+              scrub: true,
+            },
+          });
         });
       });
 
@@ -101,7 +118,7 @@ export function GallerySection({ gallerySection, className }: GallerySectionProp
       );
     }, containerRef);
     return () => ctx.revert();
-  }, [items]);
+  }, [items, columns.length]);
 
   if (gallerySection?.enabled === false || items.length === 0) return null;
 
@@ -134,11 +151,21 @@ export function GallerySection({ gallerySection, className }: GallerySectionProp
           )}
         </header>
 
-        {/* Parallax Grid */}
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-8">
-          {[colLeftRef, colCenterRef, colRightRef].map((ref, colIdx) => (
-            <div key={colIdx} ref={ref} className="flex flex-col gap-4 md:gap-8">
-              {columns[colIdx].map((item) => (
+        {/* Masonry-style columns — balanced fill, no empty right gap */}
+        <div
+          className={cn(
+            'grid w-full grid-cols-1 gap-4 md:gap-6',
+            columns.length === 2 && 'md:grid-cols-2',
+            columns.length >= 3 && 'md:grid-cols-3'
+          )}
+        >
+          {columns.map((columnItems, colIdx) => (
+            <div
+              key={`gallery-col-${colIdx}`}
+              ref={columnRefs[colIdx]}
+              className="flex min-w-0 flex-col gap-4 md:gap-6"
+            >
+              {columnItems.map((item) => (
                 <div
                   key={item.id}
                   className="group relative cursor-pointer overflow-hidden rounded-2xl"

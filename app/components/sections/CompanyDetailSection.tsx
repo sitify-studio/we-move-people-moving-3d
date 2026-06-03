@@ -105,13 +105,13 @@ function CompanyCollage({ images }: { images: CollageImage[] }) {
   if (images.length === 1) {
     return (
       <div className="relative min-h-[20rem] overflow-hidden rounded-lg sm:min-h-[24rem]">
-        <OptimizedImage
-          src={images[0].url}
-          alt={images[0].alt}
-          fill
-          sizes={IMAGE_SIZES.sectionHalf}
-          className="object-cover"
-        />
+          <OptimizedImage
+            src={images[0].url}
+            alt={images[0].alt}
+            fill
+            sizes={IMAGE_SIZES.sectionHalf}
+            className="object-cover opacity-100 saturate-100"
+          />
       </div>
     );
   }
@@ -131,7 +131,7 @@ function CompanyCollage({ images }: { images: CollageImage[] }) {
             alt={image.alt}
             fill
             sizes={IMAGE_SIZES.card}
-            className="object-cover"
+            className="object-cover opacity-100 saturate-100"
           />
         </div>
       ))}
@@ -191,16 +191,16 @@ export function CompanyDetailSection({
 
   useEffect(() => {
     const ctx = gsap.context(() => {
-      const items = contentRef.current?.querySelectorAll('.company-detail-item');
+      const items = contentRef.current?.querySelectorAll('.company-detail-text-item');
       if (items?.length) {
         gsap.fromTo(
           items,
-          { opacity: 0, y: 24 },
+          { y: 24 },
           {
-            opacity: 1,
             y: 0,
             duration: 0.55,
             stagger: 0.1,
+            ease: 'power3.out',
             scrollTrigger: {
               trigger: contentRef.current,
               start: 'top 85%',
@@ -211,7 +211,7 @@ export function CompanyDetailSection({
       }
     }, containerRef);
     return () => ctx.revert();
-  }, [gridItems.length, collageImages.length]);
+  }, [gridItems.length]);
 
   if (!companyDetailSection || companyDetailSection.enabled === false) return null;
   if (!hasTitle && !description && gridItems.length === 0) return null;
@@ -249,6 +249,7 @@ export function CompanyDetailSection({
     <section
       ref={containerRef}
       id="company"
+      data-scroll-animated="self"
       className={cn('relative overflow-hidden', layout.sectionClass, className)}
       style={{ backgroundColor: colors.pageBackground, fontFamily: fonts.body }}
     >
@@ -294,7 +295,7 @@ export function CompanyDetailSection({
                 )}
               >
                 {gridItems.map((block, index) => (
-                  <article key={`${block.heading}-${index}`} className="company-detail-item">
+                  <article key={`${block.heading}-${index}`} className="company-detail-text-item">
                     <p
                       className="text-4xl font-bold leading-none sm:text-5xl"
                       style={{ color: colors.mainText, fontFamily: fonts.heading }}
@@ -323,7 +324,7 @@ export function CompanyDetailSection({
             ) : null}
 
             {collageImages.length > 0 ? (
-              <div className="company-detail-item">
+              <div className="company-detail-collage" data-scroll-reveal-ignore>
                 <CompanyCollage images={collageImages} />
               </div>
             ) : null}
