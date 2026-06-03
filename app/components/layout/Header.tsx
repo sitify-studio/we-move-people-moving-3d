@@ -125,7 +125,7 @@ export function Header() {
 
   return (
     <nav
-      className="pointer-events-none fixed left-0 right-0 top-0 z-[100] flex justify-center px-4 pt-3 sm:px-6 lg:px-8"
+      className="pointer-events-none fixed left-0 right-0 top-0 z-[100] flex justify-center px-4 pt-2 sm:px-6 lg:px-8"
       style={{ fontFamily: fonts.body }}
     >
       <motion.div
