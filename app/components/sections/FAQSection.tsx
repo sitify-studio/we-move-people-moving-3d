@@ -1,19 +1,14 @@
 'use client';
 
-import { ArrowLeft, ArrowRight } from 'lucide-react';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { useCallback, useEffect, useMemo, useRef, useState, type TouchEvent } from 'react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import type { Page } from '@/app/lib/types';
-import { useWebBuilder } from '@/app/providers/WebBuilderProvider';
 import { tiptapToText } from '@/app/lib/seo';
-import { cn, resolveTextOnBackground, TIPTAP_INHERIT } from '@/app/lib/utils';
+import { cn, TIPTAP_INHERIT } from '@/app/lib/utils';
 import { TiptapRenderer } from '@/app/components/ui/TiptapRenderer';
 import { parseEditorialHeroLines } from '@/app/components/sections/EditorialHeroTypography';
 import { useSectionTheme } from '@/app/hooks/useSectionTheme';
 import type { ThemeColors } from '@/app/hooks/useTheme';
-
-gsap.registerPlugin(ScrollTrigger);
 
 interface FAQSectionProps {
   faqSection?: Page['faqSection'];
@@ -26,6 +21,8 @@ type FaqItem = {
   questionContent?: unknown;
   answerContent?: unknown;
 };
+
+const FAQ_TEXT = '#ffffff';
 
 function FaqTitle({
   content,
@@ -91,150 +88,140 @@ function faqKey(item: FaqItem, index: number): string {
   return `${index}-${item.question.slice(0, 48)}`;
 }
 
-function FaqCarouselCard({
+function FaqAccordionItem({
   item,
-  active,
-  onSelect,
+  index,
+  open,
+  onToggle,
   colors,
   fonts,
-  inactiveQuestionColor,
 }: {
   item: FaqItem;
-  active: boolean;
-  onSelect: () => void;
+  index: number;
+  open: boolean;
+  onToggle: () => void;
   colors: ThemeColors;
   fonts: { heading: string; body: string };
-  inactiveQuestionColor: string;
 }) {
-  const inactiveBg = `color-mix(in srgb, ${colors.sectionBackgroundLight} 88%, ${colors.cardBackground})`;
+  const accent = colors.primaryButton;
+  const expandedBorder = `color-mix(in srgb, ${accent} 25%, transparent)`;
+  const formattedIndex = String(index + 1).padStart(2, '0');
 
   return (
-    <button
-      type="button"
-      onClick={onSelect}
+    <div
       className={cn(
-        'faq-carousel-card relative flex shrink-0 flex-col overflow-hidden rounded-[28px] text-left transition-[transform,box-shadow] duration-500',
-        active 
-          ? 'min-h-[400px] w-[min(88vw,340px)] scale-100 shadow-xl sm:min-h-[440px] sm:w-[360px]' 
-          : 'min-h-[360px] w-[min(78vw,280px)] scale-[0.94] opacity-90 sm:min-h-[400px] sm:w-[300px]'
+        'group relative overflow-hidden rounded-[24px] transition-all duration-300 border text-left w-full',
+        open ? 'shadow-md scale-[1.01]' : 'shadow-none hover:scale-[1.005]'
       )}
       style={{
-        backgroundColor: active ? colors.primaryButton : inactiveBg,
-        boxShadow: active
-          ? `0 24px 48px color-mix(in srgb, ${colors.primaryButton} 28%, transparent)`
-          : `0 8px 24px color-mix(in srgb, ${colors.mainText} 6%, transparent)`,
+        backgroundColor: open ? colors.pageBackground : accent,
+        borderColor: open ? expandedBorder : 'transparent',
       }}
-      aria-current={active ? 'true' : undefined}
     >
-      <div
-        className={cn(
-          'flex h-full flex-col p-7 sm:p-8',
-          active ? 'justify-center gap-6' : 'justify-end'
-        )}
-      >
-        <h3
-          className={cn(
-            'font-bold leading-snug tracking-tight',
-            active ? 'text-xl sm:text-2xl' : 'text-base sm:text-lg'
-          )}
+      {/* Background Embellishments to unify alignment depth */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden select-none z-0">
+        <div 
+          className="absolute inset-0 opacity-[0.03] mix-blend-overlay"
           style={{
-            color: active ? '#ffffff' : inactiveQuestionColor,
-            fontFamily: fonts.heading,
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='32' height='32' viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M32 0v32H0V0h32zM1 1v30h30V1H1z' fill='%23000000' fill-opacity='1' fill-rule='evenodd'/%3E%3C/svg%3E")`,
           }}
-        >
-          {item.questionContent && typeof item.questionContent === 'object' ? (
-            <TiptapRenderer content={item.questionContent} as="inline" className={TIPTAP_INHERIT} />
-          ) : (
-            item.question
+        />
+        {/* Subtle geometric clean ring motif */}
+        <div 
+          className={cn(
+            "absolute -right-6 -top-6 w-24 h-24 rounded-full border transition-transform duration-500",
+            open ? "border-current opacity-[0.06] scale-110" : "border-white/10 scale-100"
           )}
-        </h3>
-
-        {active && (item.answer || item.answerContent) ? (
-          <div
-            className="text-sm leading-relaxed sm:text-[0.95rem]"
-            style={{ color: 'color-mix(in srgb, #ffffff 88%, transparent)', fontFamily: fonts.body }}
-          >
-            {item.answerContent && typeof item.answerContent === 'object' ? (
-              <TiptapRenderer content={item.answerContent} as="inline" className={TIPTAP_INHERIT} />
-            ) : (
-              item.answer
-            )}
-          </div>
-        ) : null}
+          style={{ color: open ? colors.mainText : undefined }}
+        />
       </div>
-    </button>
-  );
-}
 
-function FaqNavButton({
-  direction,
-  onClick,
-  disabled,
-  filled,
-  colors,
-}: {
-  direction: 'prev' | 'next';
-  onClick: () => void;
-  disabled?: boolean;
-  filled?: boolean;
-  colors: ThemeColors;
-}) {
-  const Icon = direction === 'prev' ? ArrowLeft : ArrowRight;
+      {/* Accordion Layout Wrapper */}
+      <div className="relative z-10 flex flex-col w-full">
+        <button
+          type="button"
+          onClick={onToggle}
+          className="flex w-full items-start justify-between gap-5 p-6 text-left sm:p-7"
+          aria-expanded={open}
+        >
+          {/* Aligned Numeric Index + Question Content Block */}
+          <div className="flex items-start gap-4 min-w-0 flex-1">
+            <span 
+              className={cn(
+                "text-xs font-mono tracking-wider pt-1 shrink-0 select-none opacity-40",
+                open ? "text-current" : "text-white"
+              )}
+              style={{ color: open ? colors.mainText : undefined }}
+            >
+              {formattedIndex}
+            </span>
+            <h3
+              className="min-w-0 flex-1 text-base font-bold leading-snug sm:text-lg"
+              style={{
+                color: open ? colors.mainText : FAQ_TEXT,
+                fontFamily: fonts.heading,
+              }}
+            >
+              {item.questionContent && typeof item.questionContent === 'object' ? (
+                <TiptapRenderer content={item.questionContent} as="inline" className={TIPTAP_INHERIT} />
+              ) : (
+                item.question
+              )}
+            </h3>
+          </div>
 
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      className={cn(
-        'flex h-12 w-12 items-center justify-center rounded-full border-2 transition-all duration-300',
-        'disabled:pointer-events-none disabled:opacity-35',
-        !filled && 'hover:opacity-90'
-      )}
-      style={
-        filled
-          ? {
-              borderColor: colors.mainText,
-              backgroundColor: colors.mainText,
-              color: colors.pageBackground,
-            }
-          : {
-              borderColor: `color-mix(in srgb, ${colors.mainText} 35%, transparent)`,
-              backgroundColor: colors.pageBackground,
-              color: colors.mainText,
-            }
-      }
-    >
-      <Icon className="h-5 w-5" strokeWidth={2} />
-    </button>
+          {/* Action Trigger Icon */}
+          <span
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-all duration-300"
+            style={{
+              backgroundColor: open ? accent : 'rgba(255, 255, 255, 0.15)',
+              color: open ? FAQ_TEXT : '#ffffff',
+            }}
+            aria-hidden
+          >
+            {open ? (
+              <ChevronUp className="h-4 w-4" strokeWidth={2.5} />
+            ) : (
+              <ChevronDown className="h-4 w-4" strokeWidth={2.5} />
+            )}
+          </span>
+        </button>
+
+        {/* Collapsible Panel Section */}
+        <div
+          className={cn(
+            'grid transition-[grid-template-rows] duration-300 ease-out',
+            open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+          )}
+        >
+          <div className="overflow-hidden">
+            {(item.answer || item.answerContent) ? (
+              <div 
+                className="flex items-start gap-4 px-6 pb-6 sm:px-7 sm:pb-7 text-sm leading-relaxed sm:text-[0.95rem]"
+                style={{ color: colors.secondaryText, fontFamily: fonts.body }}
+              >
+                {/* Horizontal Spacer Element keeping alignments perfectly mirrored */}
+                <div className="w-[1.4rem] shrink-0 select-none hidden sm:block" aria-hidden />
+                
+                <div className="flex-1 min-w-0">
+                  {item.answerContent && typeof item.answerContent === 'object' ? (
+                    <TiptapRenderer content={item.answerContent} as="inline" className={TIPTAP_INHERIT} />
+                  ) : (
+                    item.answer
+                  )}
+                </div>
+              </div>
+            ) : null}
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
 export function FAQSection({ faqSection, className }: FAQSectionProps) {
-  const { site } = useWebBuilder();
   const { colors, fonts, layout } = useSectionTheme();
-
-  const sectionBackground =
-    site?.theme?.pageBackgroundColor?.trim() || colors.pageBackground;
-
-  const headerText = useMemo(
-    () =>
-      resolveTextOnBackground(sectionBackground, {
-        primary: [
-          colors.secondaryText,
-          colors.primaryButton,
-          colors.inactiveDark,
-          colors.inactive,
-        ],
-        secondary: [colors.secondaryText, colors.inactive, colors.inactiveDark],
-      }),
-    [sectionBackground, colors]
-  );
-  const [index, setIndex] = useState(0);
-  const containerRef = useRef<HTMLElement>(null);
-  const viewportRef = useRef<HTMLDivElement>(null);
-  const trackRef = useRef<HTMLDivElement>(null);
-  const touchStartX = useRef<number | null>(null);
+  const [openIndex, setOpenIndex] = useState(0);
 
   const faqItems = useMemo((): FaqItem[] => {
     return (
@@ -244,104 +231,56 @@ export function FAQSection({ faqSection, className }: FAQSectionProps) {
     );
   }, [faqSection?.items]);
 
-  const count = faqItems.length;
-
-  const updateCarouselPosition = useCallback(() => {
-    const track = trackRef.current;
-    const viewport = viewportRef.current;
-    if (!track || !viewport || count < 1) return;
-
-    const trackWidth = track.scrollWidth;
-    const viewWidth = viewport.clientWidth;
-
-    if (trackWidth <= viewWidth) {
-      gsap.to(track, { x: 0, duration: 0.55, ease: 'power3.out' });
-      return;
-    }
-
-    const card = track.children[index] as HTMLElement | undefined;
-    if (!card) return;
-
-    const cardCenter = card.offsetLeft + card.offsetWidth / 2;
-    const viewCenter = viewWidth / 2;
-    let x = viewCenter - cardCenter;
-
-    const maxX = 0;
-    const minX = viewWidth - trackWidth;
-    x = Math.max(minX, Math.min(maxX, x));
-
-    gsap.to(track, {
-      x,
-      duration: 0.55,
-      ease: 'power3.out',
-    });
-  }, [index, count]);
-
-  useEffect(() => {
-    updateCarouselPosition();
-    const id = requestAnimationFrame(() => updateCarouselPosition());
-    return () => cancelAnimationFrame(id);
-  }, [index, updateCarouselPosition, count]);
-
-  useEffect(() => {
-    const onResize = () => updateCarouselPosition();
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
-  }, [updateCarouselPosition]);
-
-  const goTo = useCallback((next: number) => {
-    if (count < 1) return;
-    setIndex(((next % count) + count) % count);
-  }, [count]);
-
-  const next = useCallback(() => goTo(index + 1), [goTo, index]);
-  const prev = useCallback(() => goTo(index - 1), [goTo, index]);
-
-  if (faqSection?.enabled === false) return null;
-
   const titleContent = faqSection?.title;
   const descriptionContent = faqSection?.description;
+  const hasTitle = !!tiptapToText(titleContent).trim();
   const hasDescription = !!tiptapToText(descriptionContent).trim();
+  const count = faqItems.length;
+
+  if (faqSection?.enabled === false) return null;
+  if (!hasTitle && !hasDescription && count === 0) return null;
+
+  const toggle = (i: number) => setOpenIndex((prev) => (prev === i ? -1 : i));
 
   return (
     <section
-      ref={containerRef}
       id="faqs"
-      className={cn('overflow-hidden', layout.sectionClass, className)}
+      className={cn(layout.sectionClass, className)}
       style={{ backgroundColor: colors.pageBackground, fontFamily: fonts.body }}
-      onTouchStart={(e) => (touchStartX.current = e.touches[0]?.clientX ?? null)}
-      onTouchEnd={(e) => {
-        if (touchStartX.current == null || count <= 1) return;
-        const delta = (e.changedTouches[0]?.clientX ?? 0) - touchStartX.current;
-        if (Math.abs(delta) > 50) delta < 0 ? next() : prev();
-      }}
     >
       <div className="container mx-auto max-w-6xl px-6">
-        {/* Header Grid - Fixed Alignment */}
-        <header
-          data-scroll-reveal
-          className="mb-6 grid grid-cols-1 items-start gap-4 md:grid-cols-12 md:gap-6"
-        >
-          <div className="md:col-span-6 lg:col-span-7">
-            {titleContent && tiptapToText(titleContent).trim() ? (
+        <div className="grid grid-cols-1 items-start gap-10 lg:grid-cols-2 lg:gap-14 xl:gap-20">
+          {/* Left column — sticky while accordion scrolls (lg+) */}
+          <div className="max-w-xl self-start lg:sticky lg:top-[5.25rem] lg:z-[1]">
+            <header data-scroll-reveal>
+            <span
+              className="inline-flex rounded-full border px-4 py-1.5 text-xs font-bold uppercase tracking-[0.14em]"
+              style={{
+                borderColor: colors.primaryButton,
+                color: colors.primaryButton,
+                fontFamily: fonts.body,
+              }}
+            >
+              FAQ
+            </span>
+
+            {hasTitle ? (
               <h2
-                className={layout.titleClass}
-                style={{ color: headerText.primary, fontFamily: fonts.heading }}
+                className={cn(layout.titleClass, 'mt-5')}
+                style={{ ...layout.title, fontFamily: fonts.heading }}
               >
                 <FaqTitle
                   content={titleContent}
-                  titleColor={headerText.primary}
+                  titleColor={colors.mainText}
                   accentColor={colors.primaryButton}
                 />
               </h2>
             ) : null}
-          </div>
 
-          <div className="flex flex-col gap-6 md:col-span-6 md:items-end lg:col-span-5">
-            {hasDescription && (
+            {hasDescription ? (
               <div
-                className={cn(layout.descriptionClass, 'max-w-md md:text-right')}
-                style={{ color: headerText.secondary, fontFamily: fonts.body }}
+                className={cn(layout.descriptionClass, 'mt-4 max-w-md')}
+                style={{ ...layout.description, fontFamily: fonts.body }}
               >
                 {typeof descriptionContent === 'object' ? (
                   <TiptapRenderer
@@ -353,43 +292,27 @@ export function FAQSection({ faqSection, className }: FAQSectionProps) {
                   descriptionContent
                 )}
               </div>
-            )}
-
-            {count > 1 && (
-              <div className="flex gap-3">
-                <FaqNavButton direction="prev" onClick={prev} colors={colors} />
-                <FaqNavButton direction="next" onClick={next} filled colors={colors} />
-              </div>
-            )}
+            ) : null}
+            </header>
           </div>
-        </header>
 
-        {/* Carousel Track */}
-        {count > 0 && (
-          <div
-            ref={viewportRef}
-            data-scroll-reveal
-            className="-mx-6 overflow-hidden px-6 md:-mx-0 md:px-0"
-          >
-            <div
-              ref={trackRef}
-              className="flex w-max items-stretch gap-5 py-4 sm:gap-6"
-              style={{ willChange: 'transform' }}
-            >
+          {/* Right column — accordion */}
+          {count > 0 ? (
+            <div data-scroll-reveal className="flex flex-col gap-4 w-full">
               {faqItems.map((item, i) => (
-                <FaqCarouselCard
+                <FaqAccordionItem
                   key={faqKey(item, i)}
                   item={item}
-                  active={i === index}
-                  onSelect={() => goTo(i)}
+                  index={i}
+                  open={openIndex === i}
+                  onToggle={() => toggle(i)}
                   colors={colors}
                   fonts={fonts}
-                  inactiveQuestionColor={headerText.primary}
                 />
               ))}
             </div>
-          </div>
-        )}
+          ) : null}
+        </div>
       </div>
     </section>
   );

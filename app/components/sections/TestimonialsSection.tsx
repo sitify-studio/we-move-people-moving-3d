@@ -1,6 +1,6 @@
 'use client';
 
-import { Star } from 'lucide-react';
+import { Calendar, CircleUser, Star } from 'lucide-react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useCallback, useEffect, useMemo, useRef, useState, type TouchEvent } from 'react';
@@ -10,6 +10,7 @@ import { cn, getImageSrc } from '@/app/lib/utils';
 import { TiptapRenderer } from '@/app/components/ui/TiptapRenderer';
 import { useSectionTheme } from '@/app/hooks/useSectionTheme';
 import type { ThemeColors } from '@/app/hooks/useTheme';
+import { useWebBuilder } from '@/app/providers/WebBuilderProvider';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -39,19 +40,33 @@ function formatDateLabel(raw: unknown): string | undefined {
   const text = String(raw).trim();
   if (!text) return undefined;
   const parsed = Date.parse(text);
-  if (Number.isNaN(parsed)) return text;
-  return new Intl.DateTimeFormat(undefined, {
+  if (Number.isNaN(parsed)) return text.startsWith('on ') ? text : `on ${text}`;
+  const formatted = new Intl.DateTimeFormat(undefined, {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
   }).format(new Date(parsed));
+  return `on ${formatted}`;
 }
 
-function getInitials(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return '?';
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+function resolveAvatarUrl(item: Record<string, unknown>): string | undefined {
+  const direct =
+    (typeof item.avatar === 'string' && item.avatar.trim()) ||
+    (typeof item.photo === 'string' && item.photo.trim()) ||
+    (typeof item.profileImage === 'string' && item.profileImage.trim()) ||
+    (typeof item.imageUrl === 'string' && item.imageUrl.trim()) ||
+    (typeof item.image === 'string' && item.image.trim());
+  if (direct) return direct.trim();
+
+  const image = item.image;
+  if (image && typeof image === 'object' && image !== null) {
+    const url = (image as { url?: string }).url;
+    if (typeof url === 'string' && url.trim()) return url.trim();
+  }
+
+  const thumb =
+    typeof item.videoThumbnailUrl === 'string' ? item.videoThumbnailUrl.trim() : undefined;
+  return thumb || undefined;
 }
 
 function normalizeTestimonialItem(item: Record<string, unknown>): DisplayTestimonial | null {
@@ -68,8 +83,7 @@ function normalizeTestimonialItem(item: Record<string, unknown>): DisplayTestimo
   );
   const rating =
     typeof item.rating === 'number' && !Number.isNaN(item.rating) ? item.rating : undefined;
-  const avatar =
-    typeof item.avatar === 'string' && item.avatar.trim() ? item.avatar.trim() : undefined;
+  const avatar = resolveAvatarUrl(item);
   const dateLabel = formatDateLabel(
     item.date ?? item.reviewDate ?? item.publishedAt ?? item.createdAt
   );
@@ -113,7 +127,7 @@ function ReviewerAvatar({
     return (
       <img
         src={getImageSrc(item.avatar)}
-        alt=""
+        alt={item.name ? `${item.name} photo` : ''}
         width={size}
         height={size}
         className="rounded-full object-cover"
@@ -123,6 +137,12 @@ function ReviewerAvatar({
           boxShadow: active
             ? `0 12px 28px color-mix(in srgb, ${colors.mainText} 18%, transparent)`
             : 'none',
+          ...(active
+            ? {
+                outline: `2px solid ${colors.primaryButton}`,
+                outlineOffset: 3,
+              }
+            : {}),
         }}
       />
     );
@@ -130,20 +150,25 @@ function ReviewerAvatar({
 
   return (
     <div
-      className="flex items-center justify-center rounded-full font-bold uppercase"
+      className="flex items-center justify-center rounded-full"
       style={{
         width: size,
         height: size,
-        fontSize: active ? '1.1rem' : '0.85rem',
-        color: colors.pageBackground,
-        background: `linear-gradient(135deg, ${colors.primaryButton}, ${colors.hoverActive})`,
+        color: colors.primaryButton,
+        backgroundColor: `color-mix(in srgb, ${colors.primaryButton} 12%, ${colors.pageBackground})`,
+        border: `1px solid color-mix(in srgb, ${colors.primaryButton} 35%, transparent)`,
         boxShadow: active
-          ? `0 12px 28px color-mix(in srgb, ${colors.primaryButton} 35%, transparent)`
+          ? `0 12px 28px color-mix(in srgb, ${colors.primaryButton} 25%, transparent)`
           : 'none',
+        ...(active ? { outline: `2px solid ${colors.primaryButton}`, outlineOffset: 3 } : {}),
       }}
       aria-hidden
     >
-      {getInitials(item.name || '?')}
+      <CircleUser
+        className={active ? 'h-8 w-8' : 'h-6 w-6'}
+        strokeWidth={1.5}
+        aria-hidden
+      />
     </div>
   );
 }
@@ -205,17 +230,18 @@ function ArcReviewerItem({
             {item.rating != null ? (
               <div className="flex items-center gap-1">
                 <Star
-                  className="h-3 w-3 shrink-0"
+                  className="h-3.5 w-3.5 shrink-0"
                   style={{ color: colors.primaryButton, fill: colors.primaryButton }}
                   aria-hidden
                 />
-                <span className="font-semibold" style={{ color: colors.mainText }}>
+                <span className="font-semibold tabular-nums" style={{ color: colors.mainText }}>
                   {item.rating.toFixed(1)}
                 </span>
               </div>
             ) : null}
             {item.dateLabel ? (
-              <span className="opacity-70">
+              <span className="inline-flex items-center gap-1 opacity-70">
+                <Calendar className="h-3 w-3 shrink-0 opacity-60" aria-hidden />
                 {item.dateLabel}
               </span>
             ) : null}
@@ -235,6 +261,7 @@ export function TestimonialsSection({
   className,
 }: TestimonialsSectionProps) {
   const { colors, fonts, layout } = useSectionTheme();
+  const { testimonials: apiTestimonials } = useWebBuilder();
   const [index, setIndex] = useState(0);
   const containerRef = useRef<HTMLElement>(null);
   const quoteRef = useRef<HTMLDivElement>(null);
@@ -252,12 +279,37 @@ export function TestimonialsSection({
   );
 
   const displayTestimonials = useMemo((): DisplayTestimonial[] => {
-    return (
+    const fromPage =
       testimonialsSection?.testimonials
         ?.map((item) => normalizeTestimonialItem(item as Record<string, unknown>))
-        .filter((item): item is DisplayTestimonial => Boolean(item)) ?? []
-    );
-  }, [testimonialsSection?.testimonials]);
+        .filter((item): item is DisplayTestimonial => Boolean(item)) ?? [];
+
+    const fromApi =
+      apiTestimonials?.testimonials
+        ?.map((item) => normalizeTestimonialItem(item as Record<string, unknown>))
+        .filter((item): item is DisplayTestimonial => Boolean(item)) ?? [];
+
+    if (fromPage.length === 0) return fromApi;
+
+    return fromPage.map((item, i) => {
+      const match =
+        fromApi.find(
+          (api) =>
+            item.name &&
+            api.name &&
+            api.name.trim().toLowerCase() === item.name.trim().toLowerCase()
+        ) ?? fromApi[i];
+
+      if (!match) return item;
+      return {
+        ...item,
+        avatar: item.avatar ?? match.avatar,
+        rating: item.rating ?? match.rating,
+        dateLabel: item.dateLabel ?? match.dateLabel,
+        role: item.role || match.role,
+      };
+    });
+  }, [testimonialsSection?.testimonials, apiTestimonials?.testimonials]);
 
   const active = displayTestimonials[index] ?? displayTestimonials[0];
   const count = displayTestimonials.length;
@@ -293,7 +345,12 @@ export function TestimonialsSection({
     >
       <div className="container mx-auto max-w-6xl px-6">
         {sectionTitle || sectionDescription ? (
-          <header data-scroll-reveal className={layout.headerCenterClass}>
+          <header data-scroll-reveal className={cn(layout.headerCenterClass, 'mb-10 lg:mb-12')}>
+            <div
+              className="mx-auto mb-4 h-1 w-12 rounded-full"
+              style={{ backgroundColor: colors.primaryButton }}
+              aria-hidden
+            />
             {sectionTitle ? (
               <h2
                 className={layout.titleClass}
@@ -364,7 +421,7 @@ export function TestimonialsSection({
           <div data-scroll-reveal className="order-1 lg:order-2 lg:col-span-7">
             <div ref={quoteRef} key={index} className="relative">
               <span
-                className="pointer-events-none absolute -left-6 -top-10 select-none font-serif text-[8rem] leading-none opacity-10 sm:text-[10rem]"
+                className="pointer-events-none absolute -left-2 -top-6 select-none font-serif text-[5rem] leading-none sm:-left-4 sm:-top-8 sm:text-[6.5rem]"
                 style={{ color: colors.mainText }}
                 aria-hidden
               >
@@ -372,26 +429,63 @@ export function TestimonialsSection({
               </span>
 
               <blockquote className="relative z-10">
-                <div className="text-xl leading-relaxed sm:text-2xl md:text-[1.5rem] md:leading-[1.7]" style={{ color: colors.mainText }}>
+                <div
+                  className="text-xl leading-relaxed sm:text-2xl md:text-[1.5rem] md:leading-[1.7]"
+                  style={{ color: colors.mainText, fontFamily: fonts.heading }}
+                >
                   {dropCap.letter ? (
                     <span
-                      className="float-left mr-4 mt-2 text-[4rem] font-bold leading-[0.8] sm:text-[5rem]"
-                      style={{ color: colors.primaryButton, fontFamily: fonts.heading }}
+                      className="float-left mr-3 mt-1 text-[4rem] font-normal leading-[0.75] sm:mr-4 sm:text-[5rem]"
+                      style={{ color: colors.mainText, fontFamily: fonts.heading }}
                     >
                       {dropCap.letter}
                     </span>
                   ) : null}
-                  <p className="italic">
+                  <p className="italic" style={{ fontFamily: fonts.heading }}>
                     {dropCap.rest || active.content}
                   </p>
                 </div>
-                
-                <footer className="mt-8 flex items-center gap-4">
-                  <div className="h-[1px] w-8 bg-current opacity-30" />
-                  <p className="text-sm font-bold uppercase tracking-widest" style={{ color: colors.secondaryText }}>
-                    Verified Success Story
-                  </p>
-                </footer>
+
+                {(active.name || active.rating != null || active.dateLabel || active.avatar) ? (
+                  <footer className="mt-8 flex items-center gap-4 border-t pt-6" style={{ borderColor: `color-mix(in srgb, ${colors.mainText} 12%, transparent)` }}>
+                    <ReviewerAvatar item={active} active colors={colors} />
+                    <div className="min-w-0">
+                      {active.name ? (
+                        <p className="text-sm font-bold" style={{ color: colors.mainText, fontFamily: fonts.heading }}>
+                          {active.name}
+                        </p>
+                      ) : null}
+                      {(active.rating != null || active.dateLabel || active.role) ? (
+                        <div
+                          className="mt-1 flex flex-wrap items-center gap-2 text-xs"
+                          style={{ color: colors.secondaryText, fontFamily: fonts.body }}
+                        >
+                          {active.rating != null ? (
+                            <span className="inline-flex items-center gap-1">
+                              <Star
+                                className="h-3.5 w-3.5 shrink-0"
+                                style={{ color: colors.primaryButton, fill: colors.primaryButton }}
+                                aria-hidden
+                              />
+                              <span className="font-semibold tabular-nums" style={{ color: colors.mainText }}>
+                                {active.rating.toFixed(1)}
+                              </span>
+                            </span>
+                          ) : null}
+                          {active.dateLabel ? (
+                            <span className="inline-flex items-center gap-1 opacity-80">
+                              <Calendar className="h-3 w-3 shrink-0" aria-hidden />
+                              {active.dateLabel}
+                            </span>
+                          ) : null}
+                          {active.role && !active.dateLabel ? (
+                            <span className="opacity-80">{active.role}</span>
+                          ) : null}
+                        </div>
+                      ) : null}
+                    </div>
+                  </footer>
+                ) : null}
               </blockquote>
             </div>
           </div>
