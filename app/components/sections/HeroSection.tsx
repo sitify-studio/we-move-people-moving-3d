@@ -496,7 +496,7 @@ export function HeroSection({ hero, page, className }: { hero?: Page['hero'], pa
     <section
       ref={containerRef}
       className={cn(
-        'relative overflow-x-hidden pt-0 pb-10 md:pb-14 lg:min-h-[calc(100dvh-4.75rem)] lg:flex lg:items-center',
+        'relative overflow-x-hidden pb-10 md:pb-14 lg:min-h-[calc(100dvh-4.0rem)] lg:flex lg:items-center',
         className
       )}
       style={{ backgroundColor: colors.pageBackground, fontFamily: fonts.body }}

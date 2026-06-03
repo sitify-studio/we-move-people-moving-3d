@@ -125,7 +125,7 @@ export function Header() {
 
   return (
     <nav
-      className="pointer-events-none fixed left-0 right-0 top-0 z-[100] flex justify-center px-4 pt-2 sm:px-6 lg:px-8"
+      className="pointer-events-none fixed left-0 right-0 top-0 z-[100] flex justify-center px-4 pt-1.5 sm:px-6 lg:px-8"
       style={{ fontFamily: fonts.body }}
     >
       <motion.div
@@ -134,7 +134,7 @@ export function Header() {
         transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
         className={cn(
           'pointer-events-auto flex w-full max-w-7xl items-center justify-between gap-4 rounded-full border px-4 py-2.5 transition-all duration-500 sm:px-6 sm:py-3',
-          isScrolled ? 'h-14 sm:h-16' : 'h-14 sm:h-[4.25rem]'
+          'h-14 sm:h-16'
         )}
         style={barStyle}
       >

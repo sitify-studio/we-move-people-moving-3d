@@ -30,7 +30,7 @@ export default function RootLayout({
                 <HeroIntroProvider>
                   <ThemeFontWrapper>
                     <Header />
-                    <main className="relative z-10 min-h-screen pt-[4.75rem]">
+                    <main className="relative z-10 min-h-screen pt-[4.25rem]">
                       {children}
                     </main>
                   </ThemeFontWrapper>
