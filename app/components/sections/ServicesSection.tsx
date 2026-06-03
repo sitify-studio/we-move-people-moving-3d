@@ -296,15 +296,19 @@ function StackServiceCard({
 
           <Link
             href={service.href}
-            className="inline-flex w-fit items-center gap-2 rounded-full px-6 py-2.5 text-[11px] font-bold uppercase tracking-[0.16em] !text-white no-underline transition-opacity hover:opacity-90"
+            className="inline-flex w-fit items-center gap-2 rounded-full px-6 py-2.5 text-[11px] font-bold uppercase tracking-[0.16em] no-underline transition-opacity hover:opacity-90"
             style={{
               backgroundColor: '#ffffff',
               color: colors.primaryButton,
               fontFamily: fonts.body,
             }}
           >
-            {service.ctaLabel}
-            <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+            <span style={{ color: colors.primaryButton }}>{service.ctaLabel}</span>
+            <ArrowRight
+              className="h-3.5 w-3.5 shrink-0"
+              style={{ color: colors.primaryButton }}
+              aria-hidden
+            />
           </Link>
         </div>
 
