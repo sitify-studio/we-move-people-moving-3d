@@ -8,6 +8,7 @@ import { useWebBuilder } from '@/app/providers/WebBuilderProvider';
 import { cn } from '@/app/lib/utils';
 import { ArrowRight } from 'lucide-react';
 import { ContactSideForm } from '@/app/components/ui/ContactSideForm';
+import { getMapEmbedSrc } from '@/app/lib/mapEmbed';
 
 const DAY_LABELS: Record<string, string> = {
   monday: 'Mon',
@@ -36,9 +37,7 @@ export const ServiceContactFormSection: React.FC<ServiceContactFormSectionProps>
   const address = business?.address;
   const businessHours = business?.businessHours;
   const safeBusinessHours = Array.isArray(businessHours?.hours) ? businessHours.hours : [];
-  const hasValidCoordinates =
-    typeof site?.business?.coordinates?.latitude === 'number' &&
-    typeof site?.business?.coordinates?.longitude === 'number';
+  const mapEmbedSrc = getMapEmbedSrc(site?.business);
   
   const formatTime = (time: string) => {
     if (!time) return '';
@@ -159,17 +158,17 @@ export const ServiceContactFormSection: React.FC<ServiceContactFormSectionProps>
 
         {/* Right: Architectural Map Overlay */}
         <div className="relative aspect-[16/10] md:aspect-video lg:aspect-[4/3] w-full overflow-hidden shadow-2xl lg:mt-12">
-          {hasValidCoordinates ? (
-              <div className="w-full h-full grayscale-[0.9] contrast-[1.1] brightness-[1.1] scale-100 hover:grayscale-0 transition-all duration-1000">
+          {mapEmbedSrc ? (
+              <div className="h-full w-full">
                 <iframe
                   title="Office Location"
                   width="100%"
                   height="100%"
-                  frameBorder="0"
-                  style={{ border: 0, filter: 'grayscale(1) contrast(1.2) opacity(0.8)' }}
-                  src={`https://maps.google.com/maps?q=${site.business.coordinates.latitude},${site.business.coordinates.longitude}&z=15&output=embed`}
+                  className="block h-full min-h-[280px] w-full border-0"
+                  src={mapEmbedSrc}
                   allowFullScreen
                   loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
                 />
               </div>
           ) : (

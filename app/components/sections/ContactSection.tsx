@@ -8,6 +8,7 @@ import { cn } from '@/app/lib/utils';
 import { useSectionTheme } from '@/app/hooks/useSectionTheme';
 import { ContactSideForm } from '@/app/components/ui/ContactSideForm';
 import { tiptapToText } from '@/app/lib/seo';
+import { getMapEmbedSrc } from '@/app/lib/mapEmbed';
 import { SectionEditorialHeader } from '@/app/components/sections/SectionEditorialHeader';
 
 const DAY_LABELS: Record<string, string> = {
@@ -86,9 +87,10 @@ export function ContactSection({ contactSection, className }: ContactSectionProp
     [descriptionContent]
   );
 
-  if (!contactSection?.enabled) return null;
-
   const business = site?.business;
+  const mapEmbedSrc = useMemo(() => getMapEmbedSrc(business), [business]);
+
+  if (!contactSection?.enabled) return null;
   const address = business?.address;
   const businessHours = business?.businessHours;
   const showForm = contactSection.showForm !== false;
@@ -277,26 +279,26 @@ export function ContactSection({ contactSection, className }: ContactSectionProp
 
             {showMap ? (
               <div
-                className="relative min-h-[280px] overflow-hidden rounded-2xl border shadow-sm lg:min-h-full"
+                className="relative min-h-[320px] w-full overflow-hidden rounded-2xl border shadow-sm aspect-[4/3] lg:aspect-auto lg:min-h-[420px]"
                 style={{ borderColor: cardBorder, backgroundColor: colors.cardBackground }}
               >
-                {site?.business?.coordinates?.latitude != null &&
-                site?.business?.coordinates?.longitude != null ? (
+                {mapEmbedSrc ? (
                   <iframe
                     title="Office location"
                     width="100%"
                     height="100%"
-                    className="absolute inset-0 h-full w-full border-0 opacity-95 transition-opacity duration-500 hover:opacity-100"
-                    src={`https://maps.google.com/maps?q=${site.business.coordinates.latitude},${site.business.coordinates.longitude}&z=15&output=embed`}
+                    className="block h-full min-h-[320px] w-full border-0"
+                    src={mapEmbedSrc}
                     allowFullScreen
                     loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
                   />
                 ) : (
                   <div
-                    className="flex h-full min-h-[280px] items-center justify-center px-6 text-center text-sm"
-                    style={{ color: colors.secondaryText }}
+                    className="flex h-full min-h-[320px] items-center justify-center px-6 text-center text-sm"
+                    style={{ color: colors.secondaryText, fontFamily: fonts.body }}
                   >
-                    Map coordinates not configured in the site builder
+                    Add a business address or map coordinates in the site builder to show the map.
                   </div>
                 )}
               </div>
