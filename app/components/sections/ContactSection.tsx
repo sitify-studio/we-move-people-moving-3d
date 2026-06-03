@@ -41,6 +41,8 @@ function pickSectionField(
   return value;
 }
 
+const CARD_TEXT = '#ffffff';
+
 function ContactField({
   label,
   children,
@@ -48,17 +50,17 @@ function ContactField({
   label: string;
   children: React.ReactNode;
 }) {
-  const { colors, fonts } = useSectionTheme();
+  const { fonts } = useSectionTheme();
 
   return (
     <div className="space-y-2">
       <span
         className="block text-[10px] font-bold uppercase tracking-[0.2em]"
-        style={{ color: colors.primaryButton, fontFamily: fonts.body }}
+        style={{ color: CARD_TEXT, fontFamily: fonts.body }}
       >
         {label}
       </span>
-      <div className="text-sm leading-relaxed" style={{ color: colors.mainText, fontFamily: fonts.body }}>
+      <div className="text-sm leading-relaxed" style={{ color: CARD_TEXT, fontFamily: fonts.body }}>
         {children}
       </div>
     </div>
@@ -121,7 +123,9 @@ export function ContactSection({ contactSection, className }: ContactSectionProp
     .join(', ');
 
   const mapQuery = addressLine;
-  const cardBorder = `color-mix(in srgb, ${colors.mainText} 10%, transparent)`;
+  const cardBorder = `color-mix(in srgb, ${CARD_TEXT} 22%, transparent)`;
+  const cardBackground = `linear-gradient(145deg, color-mix(in srgb, ${colors.primaryButton} 92%, ${colors.mainText}) 0%, color-mix(in srgb, ${colors.primaryButton} 70%, ${colors.mainText}) 100%)`;
+  const hoursPanelBg = `color-mix(in srgb, ${CARD_TEXT} 10%, transparent)`;
 
   const hasAddress = Boolean(address?.street || address?.city);
   const hasPhone = Boolean(business?.phone?.trim());
@@ -182,13 +186,13 @@ export function ContactSection({ contactSection, className }: ContactSectionProp
                 className="flex flex-col gap-8 rounded-2xl p-7 shadow-sm sm:p-8"
                 style={{
                   border: `1px solid ${cardBorder}`,
-                  backgroundColor: colors.cardBackground,
+                  background: cardBackground,
                 }}
               >
                 <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
                   {hasAddress ? (
                     <ContactField label="Address">
-                      <p style={{ color: colors.secondaryText }}>
+                      <p style={{ color: CARD_TEXT }}>
                         {address?.street ? (
                           <>
                             {address.street}
@@ -204,8 +208,8 @@ export function ContactSection({ contactSection, className }: ContactSectionProp
                           rel="noopener noreferrer"
                           className="mt-4 inline-flex items-center gap-2 rounded-full border px-6 py-2 text-xs font-medium transition-opacity hover:opacity-80"
                           style={{
-                            borderColor: colors.mainText,
-                            color: colors.mainText,
+                            borderColor: CARD_TEXT,
+                            color: CARD_TEXT,
                           }}
                         >
                           View map
@@ -222,7 +226,7 @@ export function ContactSection({ contactSection, className }: ContactSectionProp
                           <a
                             href={`tel:${business.phone.replace(/\s/g, '')}`}
                             className="transition-opacity hover:opacity-80"
-                            style={{ color: colors.mainText }}
+                            style={{ color: CARD_TEXT }}
                           >
                             {business.phone}
                           </a>
@@ -234,7 +238,7 @@ export function ContactSection({ contactSection, className }: ContactSectionProp
                           <a
                             href={`mailto:${business.email}`}
                             className="break-all transition-opacity hover:opacity-80"
-                            style={{ color: colors.mainText }}
+                            style={{ color: CARD_TEXT }}
                           >
                             {business.email}
                           </a>
@@ -250,16 +254,16 @@ export function ContactSection({ contactSection, className }: ContactSectionProp
                       className="mt-1 space-y-2 rounded-xl border p-4"
                       style={{
                         borderColor: cardBorder,
-                        backgroundColor: `color-mix(in srgb, ${colors.pageBackground} 65%, ${colors.cardBackground})`,
+                        backgroundColor: hoursPanelBg,
                       }}
                     >
                       {businessHours.hours.map((day) => (
                         <div
                           key={day.day}
                           className="flex justify-between gap-4 text-sm"
-                          style={{ color: colors.secondaryText }}
+                          style={{ color: CARD_TEXT, fontFamily: fonts.body }}
                         >
-                          <span className="font-medium" style={{ color: colors.mainText }}>
+                          <span className="font-medium" style={{ color: CARD_TEXT }}>
                             {DAY_LABELS[day.day]}
                           </span>
                           <span>{formatDayHours(day)}</span>

@@ -160,6 +160,15 @@ export function getTestimonialsNavItem(pages?: Page[]): HeaderNavItem {
   };
 }
 
+export function getHomeNavItem(pages?: Page[]): HeaderNavItem {
+  const homePage = pages?.find((p) => p.pageType === 'home' && p.status === 'published');
+  return {
+    id: homePage?._id ?? 'nav-home',
+    name: homePage?.name?.trim() || 'Home',
+    href: '/',
+  };
+}
+
 export function getPublishedNavPages(pages?: Page[]): Page[] {
   return (
     pages
@@ -224,15 +233,17 @@ export function getHeaderNavItems(pages?: Page[]): HeaderNavItem[] {
     items.push(item);
   }
 
-  return items
-    .filter((item) => !isTestimonialsNavItem(item))
+  const sorted = items
+    .filter((item) => !isTestimonialsNavItem(item) && item.href !== '/')
     .sort((a, b) => {
-    const pageA = pages?.find((p) => getPageHref(p) === a.href);
-    const pageB = pages?.find((p) => getPageHref(p) === b.href);
-    const orderA = (pageA as Page & { order?: number })?.order ?? 999;
-    const orderB = (pageB as Page & { order?: number })?.order ?? 999;
-    return orderA - orderB;
-  });
+      const pageA = pages?.find((p) => getPageHref(p) === a.href);
+      const pageB = pages?.find((p) => getPageHref(p) === b.href);
+      const orderA = (pageA as Page & { order?: number })?.order ?? 999;
+      const orderB = (pageB as Page & { order?: number })?.order ?? 999;
+      return orderA - orderB;
+    });
+
+  return [getHomeNavItem(pages), ...sorted];
 }
 
 export type FooterNavLink = {

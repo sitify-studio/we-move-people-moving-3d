@@ -76,10 +76,11 @@ function getStackCardTheme(index: number, colors: ThemeColors) {
 
   return {
     accent,
-    panel: `color-mix(in srgb, ${colors.cardBackground} 94%, transparent)`,
+    panel: `linear-gradient(145deg, color-mix(in srgb, ${accent} 92%, ${colors.mainText}) 0%, color-mix(in srgb, ${accent} 70%, ${colors.mainText}) 100%)`,
     visual: `linear-gradient(135deg, color-mix(in srgb, ${accent} 85%, ${colors.sectionBackgroundLight}) 0%, color-mix(in srgb, ${accent} 60%, ${colors.mainText}) 100%)`,
-    border: `color-mix(in srgb, ${colors.primaryButton} 12%, transparent)`,
-    shadow: `color-mix(in srgb, ${colors.mainText} 12%, transparent)`,
+    border: `color-mix(in srgb, #ffffff 18%, transparent)`,
+    shadow: `color-mix(in srgb, ${colors.mainText} 22%, transparent)`,
+    text: '#ffffff',
   };
 }
 
@@ -263,8 +264,7 @@ function StackServiceCard({
         zIndex: stackTotal - index,
         transformOrigin: 'center top',
         boxShadow: `0 10px 30px ${cardTheme.shadow}`,
-        ...styles.cardSolid,
-        backgroundColor: cardTheme.panel,
+        background: cardTheme.panel,
         borderColor: cardTheme.border,
       }}
       data-stack-index={index}
@@ -274,21 +274,21 @@ function StackServiceCard({
           <div>
             <p
               className="text-[10px] font-bold uppercase tracking-[0.24em]"
-              style={{ color: cardTheme.accent, fontFamily: fonts.body }}
+              style={{ color: cardTheme.text, fontFamily: fonts.body }}
             >
               {service.category || visual.label}
             </p>
             <h3
               className="mt-2 text-xl font-bold leading-tight tracking-tight sm:text-2xl"
-              style={{ color: colors.mainText, fontFamily: fonts.heading }}
+              style={{ color: cardTheme.text, fontFamily: fonts.heading }}
             >
-              <Link href={service.href} className="no-underline hover:opacity-85" style={{ color: 'inherit' }}>
+              <Link href={service.href} className="no-underline hover:opacity-85" style={{ color: '#ffffff' }}>
                 {service.title}
               </Link>
             </h3>
             <p
               className="mt-3 line-clamp-2 max-w-sm text-sm leading-relaxed"
-              style={{ color: colors.secondaryText }}
+              style={{ color: cardTheme.text, fontFamily: fonts.body }}
             >
               {bodyText}
             </p>
@@ -296,8 +296,12 @@ function StackServiceCard({
 
           <Link
             href={service.href}
-            className="inline-flex w-fit items-center gap-2 rounded-full px-6 py-2.5 text-[11px] font-bold uppercase tracking-[0.16em] no-underline transition-opacity hover:opacity-90"
-            style={{ ...styles.primaryCta, fontFamily: fonts.body }}
+            className="inline-flex w-fit items-center gap-2 rounded-full px-6 py-2.5 text-[11px] font-bold uppercase tracking-[0.16em] !text-white no-underline transition-opacity hover:opacity-90"
+            style={{
+              backgroundColor: '#ffffff',
+              color: colors.primaryButton,
+              fontFamily: fonts.body,
+            }}
           >
             {service.ctaLabel}
             <ArrowRight className="h-3.5 w-3.5" aria-hidden />

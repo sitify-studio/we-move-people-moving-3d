@@ -33,11 +33,11 @@ function formatTelHref(phone: string): string {
 function buildNavLinks(pages?: Page[]): HeaderNavItem[] {
   const items = getHeaderNavItems(pages);
   const testimonials = getTestimonialsNavItem(pages);
-  const seen = new Set(items.map((i) => i.href));
-  if (!seen.has(testimonials.href)) {
-    return [testimonials, ...items];
-  }
-  return items;
+  if (items.some((i) => i.href === testimonials.href)) return items;
+
+  const home = items.find((i) => i.href === '/');
+  const rest = items.filter((i) => i.href !== '/');
+  return home ? [home, testimonials, ...rest] : [testimonials, ...items];
 }
 
 export function Header() {

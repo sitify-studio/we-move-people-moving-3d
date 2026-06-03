@@ -59,6 +59,12 @@ function formatPostDate(iso: string | undefined): string | null {
   }
 }
 
+const CARD_TEXT = '#ffffff';
+
+function getCardBackground(colors: ReturnType<typeof useSectionTheme>['colors']) {
+  return `linear-gradient(145deg, color-mix(in srgb, ${colors.primaryButton} 92%, ${colors.mainText}) 0%, color-mix(in srgb, ${colors.primaryButton} 70%, ${colors.mainText}) 100%)`;
+}
+
 function getPostImageSrc(post: BlogPost): string {
   const img = post?.featuredImage;
   let raw: string | undefined;
@@ -78,7 +84,7 @@ function BlogCard({
   showExcerpt: boolean;
   showDate: boolean;
 }) {
-  const { colors, fonts, styles, layout } = useSectionTheme();
+  const { colors, fonts, styles } = useSectionTheme();
   const imgSrc = getPostImageSrc(post);
   const dateLabel = formatPostDate(post.publishedAt || post.createdAt);
 
@@ -86,7 +92,8 @@ function BlogCard({
     <article
       className="group relative flex h-full min-w-[300px] max-w-[520px] shrink-0 flex-col overflow-hidden rounded-[24px] border transition-all duration-300 hover:shadow-xl sm:min-w-[420px] sm:flex-row"
       style={{
-        ...styles.cardSolid,
+        background: getCardBackground(colors),
+        borderColor: `color-mix(in srgb, ${CARD_TEXT} 22%, transparent)`,
         fontFamily: fonts.body,
       }}
     >
@@ -115,11 +122,11 @@ function BlogCard({
             {(showDate && dateLabel) || post.category ? (
               <p
                 className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em]"
-                style={{ color: colors.primaryButton }}
+                style={{ color: CARD_TEXT, fontFamily: fonts.body }}
               >
                 {post.category}
                 {showDate && dateLabel ? (
-                  <span style={{ color: colors.secondaryText }}>
+                  <span style={{ color: CARD_TEXT }}>
                     {post.category ? ' · ' : ''}
                     {dateLabel}
                   </span>
@@ -129,7 +136,7 @@ function BlogCard({
             {post.title ? (
               <h3
                 className="text-lg font-bold leading-tight tracking-tight lg:text-xl"
-                style={{ color: colors.mainText, fontFamily: fonts.heading }}
+                style={{ color: CARD_TEXT, fontFamily: fonts.heading }}
               >
                 {post.title}
               </h3>
@@ -137,7 +144,7 @@ function BlogCard({
             {showExcerpt && post.excerpt ? (
               <div
                 className="mt-3 line-clamp-3 text-sm leading-relaxed"
-                style={{ color: colors.secondaryText }}
+                style={{ color: CARD_TEXT, fontFamily: fonts.body }}
               >
                 <TiptapRenderer content={post.excerpt} as="inline" className={TIPTAP_INHERIT} />
               </div>
@@ -146,7 +153,11 @@ function BlogCard({
 
           <span
             className="inline-flex w-fit items-center gap-2 rounded-full px-5 py-2.5 text-xs font-bold uppercase tracking-wide"
-            style={{ ...styles.primaryCta, fontFamily: fonts.body }}
+            style={{
+              backgroundColor: CARD_TEXT,
+              color: colors.primaryButton,
+              fontFamily: fonts.body,
+            }}
           >
             <ArrowRight className="h-3.5 w-3.5" aria-hidden />
           </span>

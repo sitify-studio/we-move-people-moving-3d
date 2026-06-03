@@ -37,6 +37,12 @@ type ProjectSectionInput = NonNullable<Page['projectSection']> & {
   subtitle?: unknown;
 };
 
+const CARD_TEXT = '#ffffff';
+
+function getProjectCardBackground(colors: ReturnType<typeof useSectionTheme>['colors']) {
+  return `linear-gradient(145deg, color-mix(in srgb, ${colors.primaryButton} 92%, ${colors.mainText}) 0%, color-mix(in srgb, ${colors.primaryButton} 70%, ${colors.mainText}) 100%)`;
+}
+
 function pickSectionField(
   section: ProjectsSectionInput | ProjectSectionInput | undefined,
   primary: 'title' | 'description'
@@ -52,7 +58,7 @@ function pickSectionField(
  * Editorial Social Icon mapping based on image_a4c4b0.jpg
  */
 function SocialIcon({ platform }: { platform: string }) {
-  const iconClass = "h-3.5 w-3.5 transition-opacity hover:opacity-60";
+  const iconClass = 'h-3.5 w-3.5 text-white transition-opacity hover:opacity-60';
   const key = platform.toLowerCase();
   if (key.includes('facebook')) return <Facebook className={iconClass} />;
   if (key.includes('instagram')) return <Instagram className={iconClass} />;
@@ -192,17 +198,17 @@ export function ProjectsSection({
               >
                 {/* Content Block - Styled like image_a4c4b0.jpg */}
                 <div className="w-full lg:w-1/2">
-                  <div 
-                    className="flex flex-col items-center p-8 text-center sm:p-12"
-                    style={{ 
-                      border: `1px solid color-mix(in srgb, ${colors.mainText} 10%, transparent)`,
-                      backgroundColor: colors.cardBackground 
+                  <div
+                    className="flex flex-col items-center rounded-2xl p-8 text-center sm:p-12"
+                    style={{
+                      border: `1px solid color-mix(in srgb, ${CARD_TEXT} 22%, transparent)`,
+                      background: getProjectCardBackground(colors),
                     }}
                   >
                     <header className="mb-4">
-                      <p 
-                        className="text-[11px] font-bold uppercase tracking-[0.2em] opacity-60"
-                        style={{ color: colors.secondaryText }}
+                      <p
+                        className="text-[11px] font-bold uppercase tracking-[0.2em]"
+                        style={{ color: CARD_TEXT, fontFamily: fonts.body }}
                       >
                         {category}
                         {date ? (
@@ -211,17 +217,17 @@ export function ProjectsSection({
                           </>
                         ) : null}
                       </p>
-                      <h3 
+                      <h3
                         className="mt-3 text-2xl font-black uppercase leading-tight tracking-tighter sm:text-3xl"
-                        style={{ color: colors.mainText, fontFamily: fonts.heading }}
+                        style={{ color: CARD_TEXT, fontFamily: fonts.heading }}
                       >
                         {title}
                       </h3>
                     </header>
 
-                    <div 
-                      className="mb-8 line-clamp-4 text-sm leading-relaxed opacity-80"
-                      style={{ color: colors.secondaryText }}
+                    <div
+                      className="mb-8 line-clamp-4 text-sm leading-relaxed"
+                      style={{ color: CARD_TEXT, fontFamily: fonts.body }}
                     >
                       {typeof description === 'string' ? (
                         description
@@ -233,20 +239,23 @@ export function ProjectsSection({
                     <div className="flex flex-col items-center gap-6">
                       <Link
                         href={href}
-                        className="group relative inline-block text-[11px] font-black uppercase tracking-[0.4em] transition-all"
-                        style={{ color: colors.mainText }}
+                        className="group relative inline-block text-[11px] font-black uppercase tracking-[0.4em] transition-all no-underline"
+                        style={{ color: CARD_TEXT, fontFamily: fonts.body }}
                       >
                         Read More
-                        <span 
+                        <span
                           className="absolute -bottom-1 left-0 h-[1px] w-full origin-left scale-x-0 transition-transform group-hover:scale-x-100"
-                          style={{ backgroundColor: colors.primaryButton }}
+                          style={{ backgroundColor: CARD_TEXT }}
                         />
                       </Link>
 
                       {/* Editorial Social Sharing Bar */}
-                      <div className="flex items-center gap-4 border-t pt-4" style={{ borderColor: `color-mix(in srgb, ${colors.mainText} 10%, transparent)` }}>
+                      <div
+                        className="flex items-center gap-4 border-t pt-4"
+                        style={{ borderColor: `color-mix(in srgb, ${CARD_TEXT} 22%, transparent)` }}
+                      >
                         {socialLinks.slice(0, 4).map((link, idx) => (
-                          <a key={idx} href={link.url} target="_blank" rel="noreferrer" style={{ color: colors.mainText }}>
+                          <a key={idx} href={link.url} target="_blank" rel="noreferrer" style={{ color: CARD_TEXT }}>
                             <SocialIcon platform={link.platform} />
                           </a>
                         ))}

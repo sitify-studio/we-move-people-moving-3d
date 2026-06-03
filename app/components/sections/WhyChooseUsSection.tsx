@@ -97,13 +97,14 @@ function getCtaLabel(item: HighlightItem): string {
   return short ? `Explore ${short.toLowerCase()}` : 'Learn more';
 }
 
-function getCardSurface(index: number, colors: ThemeColors): React.CSSProperties {
-  const alt =
-    index % 2 === 0
-      ? `color-mix(in srgb, ${colors.primaryButton} 14%, ${colors.sectionBackgroundLight})`
-      : `color-mix(in srgb, ${colors.cardBackground} 92%, ${colors.sectionBackgroundLight})`;
+const CARD_TEXT = '#ffffff';
 
-  return { backgroundColor: alt };
+function getCardSurface(index: number, colors: ThemeColors): React.CSSProperties {
+  const accent = index % 2 === 0 ? colors.primaryButton : colors.hoverActive;
+
+  return {
+    background: `linear-gradient(145deg, color-mix(in srgb, ${accent} 92%, ${colors.mainText}) 0%, color-mix(in srgb, ${accent} 70%, ${colors.mainText}) 100%)`,
+  };
 }
 
 function FeatureCard({
@@ -128,8 +129,8 @@ function FeatureCard({
     'wcu-card-btn mt-auto inline-flex w-fit items-center gap-2 rounded-full border-2 px-7 py-3.5 text-[11px] font-bold uppercase tracking-[0.14em] transition-all duration-300';
 
   const pillStyle = {
-    borderColor: colors.mainText,
-    color: colors.mainText,
+    borderColor: CARD_TEXT,
+    color: CARD_TEXT,
     backgroundColor: 'transparent',
     fontFamily: fonts.body,
   };
@@ -154,15 +155,15 @@ function FeatureCard({
         minWidth: CARD_MIN_W,
         width: `max(${CARD_MIN_W}px, 28vw)`,
         maxWidth: 380,
-        ['--wcu-btn-fg' as string]: colors.pageBackground,
+        ['--wcu-btn-fg' as string]: colors.primaryButton,
       }}
     >
       <span
         className="inline-flex w-fit items-center gap-1 rounded-full border px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em]"
         style={{
-          borderColor: `color-mix(in srgb, ${colors.mainText} 12%, transparent)`,
-          backgroundColor: colors.pageBackground,
-          color: colors.secondaryText,
+          borderColor: `color-mix(in srgb, ${CARD_TEXT} 35%, transparent)`,
+          backgroundColor: `color-mix(in srgb, ${CARD_TEXT} 12%, transparent)`,
+          color: CARD_TEXT,
           fontFamily: fonts.body,
         }}
       >
@@ -171,7 +172,7 @@ function FeatureCard({
 
       <h3
         className="mt-8 text-2xl font-black uppercase leading-[1.08] tracking-tight sm:text-[1.65rem] md:text-[1.75rem]"
-        style={{ color: colors.mainText, fontFamily: fonts.heading }}
+        style={{ color: CARD_TEXT, fontFamily: fonts.heading }}
       >
         {item.titleContent && typeof item.titleContent === 'object' ? (
           <TiptapRenderer content={item.titleContent} as="inline" />
@@ -183,7 +184,7 @@ function FeatureCard({
       {item.description ? (
         <p
           className="mt-5 max-w-[28ch] text-sm leading-relaxed sm:text-[0.95rem]"
-          style={{ color: colors.secondaryText }}
+          style={{ color: CARD_TEXT, fontFamily: fonts.body }}
         >
           {item.descriptionContent && typeof item.descriptionContent === 'object' ? (
             <TiptapRenderer content={item.descriptionContent} as="inline" />
@@ -197,9 +198,9 @@ function FeatureCard({
         className="mt-auto pt-10 [&_a:hover]:!border-[var(--wcu-hover-border)] [&_a:hover]:!bg-[var(--wcu-hover-bg)] [&_a:hover]:!text-[var(--wcu-hover-fg)]"
         style={
           {
-            '--wcu-hover-border': colors.mainText,
-            '--wcu-hover-bg': colors.mainText,
-            '--wcu-hover-fg': colors.pageBackground,
+            '--wcu-hover-border': CARD_TEXT,
+            '--wcu-hover-bg': CARD_TEXT,
+            '--wcu-hover-fg': colors.primaryButton,
           } as React.CSSProperties
         }
       >
